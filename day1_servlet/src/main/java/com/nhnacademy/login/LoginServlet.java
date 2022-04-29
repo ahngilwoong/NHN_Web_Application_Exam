@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LoginServlet extends HttpServlet {
     private String configId;
     private String configPwd;
+    private String filterStr = "";
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -36,19 +37,19 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
         throws ServletException, IOException {
-        log.error("/login.doGet()");
         HttpSession session = req.getSession(false);
         if (Objects.isNull(session)/* || Objects.isNull(session.getAttribute("id"))*/) {
-            resp.sendRedirect("/login.html");
+            resp.sendRedirect("/loginForm.jsp");
         } else {
             ServletContext servletContext = req.getServletContext();
             resp.setContentType("text/html");
             resp.setCharacterEncoding("UTF-8");
-
             try (PrintWriter out = resp.getWriter()) {
                 out.println("Login Success: " + session.getAttribute("id") + "<br />");
                 out.println("<a href='/logout'>Logout</a>");
-                resp.sendRedirect((String) servletContext.getAttribute("url"));
+//                if (!Objects.equals(requestUri,null)){
+//                    resp.sendRedirect(filterStr);
+//                }
             } catch (IOException ex) {
                 log.error("", ex);
             }
@@ -60,6 +61,12 @@ public class LoginServlet extends HttpServlet {
         throws ServletException, IOException {
         String id = req.getParameter("id");
         String pwd = req.getParameter("pwd");
+        String requestUri = req.getParameter("requestUri");
+        if (!Objects.equals(requestUri,null)){
+            int getParam = requestUri.indexOf("=");
+            filterStr = requestUri.substring(getParam+1,requestUri.length()-2);
+        }
+        log.info(filterStr+"//"+requestUri);
 
         if (configId.equals(id) && configPwd.equals(pwd)) {
             HttpSession session = req.getSession();
@@ -68,10 +75,10 @@ public class LoginServlet extends HttpServlet {
 
             // NOTE: RequestDispatcher를 사용하면 POST method로 다시 요청이 들어온다.
             //       GET Method로 새로운 요청이 시작되어야 하므로 sendRedirect 사용.
-            resp.sendRedirect("/login");
+            resp.sendRedirect(filterStr);
         } else {
             // NOTE: 정적 리소스의 경우 RequestDispatcher보단 sendRedirect 사용 권장.
-            resp.sendRedirect("/login.html");
+            resp.sendRedirect("/loginForm.jsp");
         }
     }
 

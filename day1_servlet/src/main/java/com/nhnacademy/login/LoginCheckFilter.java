@@ -24,10 +24,9 @@ import lombok.extern.slf4j.Slf4j;
     @WebInitParam(name = "blacklist", value = "/\n"
         + "/index.html\n"
         + "/login\n"
-        + "/login.html\n"
         + "/logout\n"
         + "/loginForm\n"
-        + "/upload.html")
+        + "/loginForm.jsp")
 })
 @Slf4j
 public class LoginCheckFilter implements Filter {
@@ -47,16 +46,13 @@ public class LoginCheckFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
         String requestUri = ((HttpServletRequest) servletRequest).getRequestURI();
-        ServletContext servletContext = servletRequest.getServletContext();
-        servletContext.setAttribute("url",requestUri);
         // blacklist
         if (urls.contains(requestUri)) {
             filterChain.doFilter(servletRequest, servletResponse);
         } else {
             HttpSession session = ((HttpServletRequest) servletRequest).getSession(false);
             if (Objects.isNull(session)) {
-
-                ((HttpServletResponse) servletResponse).sendRedirect("/login.html");
+                ((HttpServletResponse) servletResponse).sendRedirect("/loginForm.jsp?requestUri="+requestUri);
             } else {
                 filterChain.doFilter(servletRequest, servletResponse);
             }
